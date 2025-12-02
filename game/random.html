@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .config-section {
+            background: #f7f7f7;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .config-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .config-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-item label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .config-item input {
+            width: 80px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .config-item input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .display {
+            background: #f0f0f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            min-height: 48px;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .remaining-clicks {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .remaining-clicks span {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .key {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            font-size: 28px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+
+        .key:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.5;
+        }
+
+        .key.zero {
+            grid-column: 2;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .btn-reset:active {
+            transform: scale(0.98);
+        }
+
+        .btn-clear {
+            background: #ff9800;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .btn-clear:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit {
+            background: #4caf50;
+            color: white;
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .result-modal.show {
+            display: flex;
+        }
+
+        .result-content {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            text-align: center;
+            max-width: 90%;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .result-content h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4caf50;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .result-content .btn {
+            margin-top: 20px;
+        }
+
+        .status-text {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #999;
+            min-height: 20px;
+        }
+
+        .status-text.completed {
+            color: #4caf50;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <div class="display">
+            <div class="input-value" id="inputValue">-</div>
+            <div class="remaining-clicks">
+                剩余次数：<span id="remainingClicks">-</span>
+            </div>
+        </div>
+
+        <div class="keypad" id="keypad">
+            <button class="key" data-value="1">1</button>
+            <button class="key" data-value="2">2</button>
+            <button class="key" data-value="3">3</button>
+            <button class="key" data-value="4">4</button>
+            <button class="key" data-value="5">5</button>
+            <button class="key" data-value="6">6</button>
+            <button class="key" data-value="7">7</button>
+            <button class="key" data-value="8">8</button>
+            <button class="key" data-value="9">9</button>
+            <button class="key" data-value="0">0</button>
+            <button class="key" data-value="?">?</button>
+            <button class="key" data-value="?">?</button>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-clear" id="clearBtn">清除</button>
+            <button class="btn btn-reset" id="resetBtn">重置</button>
+        </div>
+
+        <div class="config-section">
+            <div class="config-item">
+                <label>可点击次数：</label>
+                <input type="number" id="maxClicks" value="4" min="1" max="20">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LotteryGame {
+            constructor() {
+                this.currentValue = '';
+                this.maxClicks = 4;
+                this.remainingClicks = 0;
+                this.isGameActive = false;
+                this.isCompleted = false;
+                
+                this.initElements();
+                this.initEventListeners();
+                // 初始化时就随机打乱数字键盘
+                this.shuffleKeypad();
+                this.updateDisplay();
+            }
+
+            initElements() {
+                this.inputValueEl = document.getElementById('inputValue');
+                this.remainingClicksEl = document.getElementById('remainingClicks');
+                this.maxClicksInput = document.getElementById('maxClicks');
+                this.keypad = document.getElementById('keypad');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+            }
+
+            generateRandomColor() {
+                // 生成随机的HSL颜色，保证亮度和饱和度适中，颜色鲜艳且易读
+                const hue = Math.floor(Math.random() * 360); // 0-359
+                const saturation = 60 + Math.floor(Math.random() * 30); // 60-89%
+                const lightness = 45 + Math.floor(Math.random() * 15); // 45-59%
+                return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            }
+
+            shuffleKeypad() {
+                // 获取所有按键
+                const keys = Array.from(this.keypad.querySelectorAll('.key'));
+                
+                // 生成0-9的数字，加上两个随机数（也是0-9）
+                const values = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+                
+                // 添加两个随机数（0-9之间）
+                const random1 = Math.floor(Math.random() * 10); // 0-9
+                const random2 = Math.floor(Math.random() * 10); // 0-9
+                values.push(String(random1), String(random2));
+                
+                // 随机打乱所有数字顺序（Fisher-Yates 洗牌算法）
+                for (let i = values.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [values[i], values[j]] = [values[j], values[i]];
+                }
+                
+                // 将打乱后的数字重新分配到按键，并设置随机颜色
+                keys.forEach((key, index) => {
+                    key.dataset.value = values[index];
+                    key.textContent = values[index];
+                    // 移除特殊样式类
+                    key.classList.remove('zero');
+                    // 为每个按钮设置不同的随机颜色
+                    const color = this.generateRandomColor();
+                    key.style.background = color;
+                    key.style.boxShadow = `0 4px 15px ${color}66`;
+                });
+            }
+
+            initEventListeners() {
+                // 数字键盘点击
+                this.keypad.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('key') && !e.target.disabled) {
+                        this.handleKeyPress(e.target.dataset.value);
+                    }
+                });
+
+                // 重置按钮
+                this.resetBtn.addEventListener('click', () => this.reset());
+
+                // 清除按钮
+                this.clearBtn.addEventListener('click', () => this.clear());
+
+                // 配置变化
+                this.maxClicksInput.addEventListener('change', () => {
+                    if (!this.isGameActive) {
+                        this.maxClicks = parseInt(this.maxClicksInput.value) || 4;
+                    } else {
+                        this.maxClicksInput.value = this.maxClicks;
+                    }
+                });
+            }
+
+            handleKeyPress(value) {
+                if (!this.isGameActive) {
+                    this.startGame();
+                }
+
+                if (this.remainingClicks > 0 && !this.isCompleted) {
+                    this.currentValue += value;
+                    this.remainingClicks--;
+                    this.updateDisplay();
+
+                    if (this.remainingClicks === 0) {
+                        this.completeGame();
+                    }
+                }
+            }
+
+            startGame() {
+                this.isGameActive = true;
+                this.maxClicks = parseInt(this.maxClicksInput.value) || 4;
+                this.remainingClicks = this.maxClicks;
+                this.maxClicksInput.disabled = true;
+                // 不在这里打乱键盘，因为用户已经点击了第一个按键
+                // this.shuffleKeypad();
+                this.updateDisplay();
+            }
+
+            completeGame() {
+                this.isCompleted = true;
+                this.updateDisplay();
+            }
+
+            clear() {
+                if (this.isGameActive && !this.isCompleted) {
+                    this.currentValue = '';
+                    this.updateDisplay();
+                }
+            }
+
+            reset() {
+                this.currentValue = '';
+                this.remainingClicks = 0;
+                this.isGameActive = false;
+                this.isCompleted = false;
+                this.maxClicksInput.disabled = false;
+                // 重置时也随机打乱数字键盘，为下一轮做准备
+                this.shuffleKeypad();
+                this.updateDisplay();
+            }
+
+            updateDisplay() {
+                // 更新输入值显示
+                this.inputValueEl.textContent = this.currentValue || '-';
+
+                // 更新剩余次数
+                if (this.isGameActive) {
+                    this.remainingClicksEl.textContent = this.remainingClicks;
+                } else {
+                    this.remainingClicksEl.textContent = '-';
+                }
+
+                // 更新按键状态
+                const keys = this.keypad.querySelectorAll('.key');
+                keys.forEach(key => {
+                    // 游戏未开始时允许点击以开始游戏，游戏进行中且有剩余次数时允许点击
+                    key.disabled = this.isGameActive && (this.remainingClicks === 0 || this.isCompleted);
+                });
+
+                // 更新清除按钮状态
+                this.clearBtn.disabled = !this.isGameActive || this.currentValue === '' || this.isCompleted;
+            }
+        }
+
+        // 初始化游戏
+        const game = new LotteryGame();
+    </script>
+</body>
+</html>
